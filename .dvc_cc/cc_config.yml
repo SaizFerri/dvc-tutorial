@@ -1,0 +1,86 @@
+cli:
+  baseCommand: [dvc-cc-agent]
+  class: CommandLineTool
+  cwlVersion: v1.0
+  doc: some descriptions of the package...
+  inputs:
+    git_authentication_json:
+      doc: 'A path to json file which contains the git authentication. This should include the keys: username. email and password.'
+      inputBinding: {position: 0}
+      type: File
+    git_path_to_working_repository:
+      doc: 'The git working directory. With this you can specify what the main git root is.'
+      inputBinding: {position: 1}
+      type: string
+    git_working_repository_owner:
+      doc: 'The name of the owner of the git repository which you want to execute.'
+      inputBinding: {position: 2}
+      type: string
+    git_working_repository_name:
+      doc: 'The git repository name.'
+      inputBinding: {position: 3}
+      type: string
+    git_name_of_input_branch:
+      doc: 'The source code jumps to this here defined git tag (with git checkout) and create from this the rcc branch.'
+      inputBinding: {position: 4}
+      type: string
+    git_name_of_result_branch:
+      doc: 'This is the name of the result branch. It is also the name of the dvc folder for this branch.'
+      inputBinding: {position: 5}
+      type: string
+    dvc_authentication_json:
+      doc: 'A path to json file which contains the dvc authentication. This should include the keys: username and password.'
+      inputBinding: {position: 6}
+      type: File
+    dvc_servername:
+      doc: 'The servername of the dvc directory.'
+      inputBinding: {position: 7}
+      type: string
+    dvc_path_to_working_repository:
+      doc: 'The directory that is used for the dvc script.'
+      inputBinding: {position: 8}
+      type: string
+    dvc_remote_directory_sshfs:
+      doc: 'A SSHFS connection to stream the output of DVC REPRO -P.'
+      inputBinding: {prefix: --dvc_remote_directory_sshfs}
+      type: Directory?
+    dvc_file_to_execute:
+      doc: 'This is optional parameter. If this parameter is given it will run "dvc repro DVC_FILE_TO_EXECUTE". Is this parameter is not set it will run "dvc repro -P"'
+      inputBinding: {prefix: --dvc_file_to_execute}
+      type: string?
+    sshfs_input_dest_rel_paths:
+      doc: 'This is optional parameter. Here you define all relative paths to the folder that has a SSHFS connection at your project. sshfs_input_dest_rel_paths and sshfs_input_server_settings must be have the same number of elements.'
+      inputBinding: {prefix: --sshfs_input_dest_rel_paths}
+      type: string[]?
+    sshfs_input_server_settings:
+      doc: 'This is optional parameter. Here you define all sshfs connections to the folder that has a SSHFS connection at your project. sshfs_input_dest_rel_paths and sshfs_input_server_settings must be have the same number of elements.'
+      inputBinding: {prefix: --sshfs_input_server_settings}
+      type: Directory[]?
+    live_output_files:
+      doc: 'Comma separated string list of files that should be included to the live output for example: tensorboard,output.json This could track a tensorboard folder and a output.json file.'
+      inputBinding: {prefix: --live_output_files}
+      type: string?
+    live_output_update_frequence:
+      doc: 'The update frequence of the live output in seconds.'
+      inputBinding: {prefix: --live_output_update_frequence}
+      type: int?
+  outputs: {}
+  stdout: stdout.txt
+  stderr: stderr.txt
+container:
+  engine: docker
+  settings:
+    gpus:
+      count: 1
+      vendor: "nvidia"
+    image:
+      url: 'docker.io/deepprojects/dvc-cc-large:10.2'
+    ram: 60000
+execution:
+  engine: ccagency
+  settings:
+    access:
+      auth: {password: '{{agency_password}}', username: '{{agency_username}}'}
+      url: https://agency.f4.htw-berlin.de/dt
+    batchConcurrencyLimit: 12
+redVersion: '9'

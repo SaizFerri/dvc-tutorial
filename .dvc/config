@@ -1,0 +1,5 @@
+[core]
+    remote = dvc_connection
+['remote "dvc_connection"']
+    url = ssh://s0554249@dt1.f4.htw-berlin.de:/mnt/md0/s0554249/github.com/SaizFerri/dvc-tutorial.git
+    ask_password = true
