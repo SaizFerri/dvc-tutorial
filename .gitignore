@@ -1,0 +1,3 @@
+mnist/
+*.cwl.json
+*.red.json

@@ -1,3 +1,10 @@
+#!/usr/bin/env python3
+import os
+import sys
+import argparse
+import time
+import copy
+
 import torch
 import numpy as np
 import torchvision
@@ -6,41 +13,55 @@ import torch.nn.functional as F
 import torch.optim as optim
 from torchvision import datasets, transforms
 from torch.utils.data import DataLoader
-import matplotlib.pyplot as plt
-import os
-import time
-import copy
+# import matplotlib.pyplot as plt
 
-plt.ion()
+# plt.ion()
+
+# Arguments
+parser = argparse.ArgumentParser()
+
+parser.add_argument(
+  '--log-dir', type=str, default=None,
+  help='Debug: Path to writable directory for a log file to be created. Default: log to stdout / stderr'
+)
+parser.add_argument(
+  '--log-file-name', type=str, default='training.log',
+  help='Debug: Name of the log file, generated when --log-dir is set. Default: training.log'
+)
+
+args = parser.parse_args()
+
+# Redirect output streams for logging
+if args.log_dir:
+  log_file = open(os.path.join(os.path.expanduser(args.log_dir), args.log_file_name), 'w')
+  sys.stdout = log_file
+  sys.stderr = log_file
 
 transform = transforms.Compose([
   transforms.ToTensor()
 ])
 
 #data_dir = 'mnist/MNIST/processed'
-train_dataset = datasets.MNIST('mnist', transform=transform, train=True)
-test_dataset = datasets.MNIST('mnist', transform=transform, train=False)
+train_dataset = datasets.MNIST('mnist', transform=transform, train=True, download=True)
+test_dataset = datasets.MNIST('mnist', transform=transform, train=False, download=True)
 
 train_loader = DataLoader(train_dataset, batch_size=64, shuffle=True, num_workers=4)
 test_loader = DataLoader(test_dataset, batch_size=64, shuffle=True, num_workers=4)
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-def imshow(inp, title=None):
-  inp = inp.numpy().transpose((1, 2, 0))
-  plt.imshow(inp)
-  if title is not None:
-    plt.title(title)
-  plt.pause(5)
+# def imshow(inp, title=None):
+#   inp = inp.numpy().transpose((1, 2, 0))
+#   plt.imshow(inp)
+#   if title is not None:
+#     plt.title(title)
+#   plt.pause(5)
   
 train_inputs, train_labels = next(iter(train_loader))
 test_inputs, test_labels = next(iter(test_loader))
 
 train_out = torchvision.utils.make_grid(train_inputs)
 test_out = torchvision.utils.make_grid(test_inputs)
-
-#imshow(train_out, train_labels)
-#imshow(test_out, test_labels)
 
 class Modelaso(nn.Module):
   def __init__(self):
@@ -63,7 +84,7 @@ class Modelaso(nn.Module):
 
 
 model = Modelaso()
-# model.load_state_dict(torch.load('best_mnist__conv_w.pt'))
+# model.load_state_dict(torch.load('weights.pt'))
 model = model.to(device)
 
 def train():
@@ -76,13 +97,8 @@ def train():
     running_loss = 0
 
     for data in train_loader:
-      #images.to(device)
-      #labels.to(device)
 
       images, labels = data[0].to(device), data[1].to(device)
-
-      # Flatten MNIST images into a 784 long vector
-      # images = images.view(images.shape[0], -1)
 
       # Training pass
       optimizer.zero_grad()
@@ -104,7 +120,7 @@ def train():
     else:
       if running_loss < best_loss:
         best_loss = running_loss
-        torch.save(model.state_dict(), 'best_mnist__conv_w.pt')
+        torch.save(model.state_dict(), 'weights.pt')
       print("Epoch {} - Training loss: {}".format(e, running_loss / len(train_loader)))
 
 train()
@@ -115,8 +131,6 @@ def eval():
     for i, data in enumerate(test_loader):
       images, labels = data[0].to(device), data[1].to(device)
 
-      # images = images.view(images.shape[0], -1)
-
       output = model(images)
       _, preds = torch.max(output, 1)
 
@@ -126,4 +140,5 @@ def eval():
 
 eval()
 
-
+if args.log_dir:
+  sys.stdout.close()

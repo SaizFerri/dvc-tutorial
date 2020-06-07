@@ -1,0 +1,23 @@
+cwlVersion: "v1.0"
+class: "CommandLineTool"
+baseCommand: "mnist_classifier_conv.py"
+doc: "Train a CNN on MNIST data."
+
+inputs:
+  log_dir:
+    type: "Directory?"
+    inputBinding:
+      prefix: "--log-dir"
+    doc: "Debug: Path to writable directory for a log file to be created. Default: log to stdout / stderr"
+  log_file_name:
+    type: "string?"
+    inputBinding:
+      prefix: "--log-file-name"
+    doc: "Debug: Name of the log file, generated when --log-dir is set. Default: training.log"
+
+outputs:
+  weights_file:
+    type: "File?"
+    outputBinding:
+      glob: "weights.pt"
+    doc: "CNN model weights in PT format."
